@@ -1,0 +1,3 @@
+func main
+    "123" strlen print
+end

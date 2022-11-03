@@ -1,0 +1,29 @@
+func ctoi
+    48 -
+end
+
+func atoi
+    var atoi_str 8 $atoi_str
+
+    var atoi_result 8 0 $atoi_result
+
+    while
+        ?atoi_str ?1
+        dup 0 !=
+    do
+        ?atoi_result
+            10
+        * $atoi_result
+
+        ctoi ?atoi_result + $atoi_result
+
+        ?atoi_str 1 + $atoi_str
+    end
+
+    drop
+    ?atoi_result
+end
+
+func main
+    "123" atoi print
+end

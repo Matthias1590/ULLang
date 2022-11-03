@@ -1,0 +1,274 @@
+func c0 "Syscall wrappers" end
+func read 0 sys3 end
+func write 1 sys3 end
+func open 2 sys3 end
+func close 3 sys1 end
+func exit 60 sys1 end
+
+func c1 "File utils" end
+func try_open
+    open
+    dup 0 < if
+        "Failed to open file" puts 10 putc
+        1 exit
+    end
+end
+
+func read_file
+    var read_file_buffer_size 8 $read_file_buffer_size
+    var read_file_buffer 8 $read_file_buffer
+    var read_file_path 8 $read_file_path
+
+    ?read_file_path 0 448 try_open
+    dup ?read_file_buffer ?read_file_buffer_size read
+    swap close drop
+end
+
+func write_file
+    var write_file_buffer 8 $write_file_buffer
+    var write_file_path 8 $write_file_path
+    
+    ?write_file_path 769 128 try_open
+    dup ?write_file_buffer dup strlen write drop
+    close drop
+end
+
+func c2 "Utils" end
+func error puts 10 putc 1 exit end
+func unimplemented "Unimplemented" error end
+func unreachable "Unreachable" error end
+
+func and if if 1 else 0 end else 0 end end
+func or if if 1 else 1 end else 0 end end
+func not if 0 else 1 end end
+
+func assert_eq
+    swap
+    not if
+        error
+    else
+        drop
+    end
+end
+
+func c3 "Tokenizing" end
+func TOKEN_NUMBER 0 end
+func TOKEN_OP     1 end
+func TOKEN_COUNT  2 end
+
+func OP_PRINT 0 end
+func OP_COUNT 1 end
+
+func Token_type  0 end
+func Token_value 1 end
+func Token_size  9 end
+
+var input_buff 1024
+var input_size 8
+var input_ptr  8
+
+var current_word 1024
+
+var token_list  1024
+var token_count 8
+
+func tokenize
+    while 
+        char_left
+    do
+        read_word
+        if
+            tokenize_word
+        end
+    end
+end
+
+func print_tokens
+    var print_tokens_i 8 0 $print_tokens_i
+
+    while ?print_tokens_i ?token_count < do
+        @token_list ?print_tokens_i Token_size * +
+            "Type: " puts dup Token_type + ?1 putu
+            ", " puts
+            "Value: " puts dup Token_value + ?8 putu
+            10 putc
+        drop
+
+        ?print_tokens_i 1 + $print_tokens_i
+    end
+end
+
+func tokenize_word
+    @current_word ?1
+        dup is_digit if
+            tokenize_number
+        else
+            tokenize_name
+        end
+    drop
+end
+
+func tokenize_number
+    TOKEN_NUMBER
+    @current_word atoi
+    push_token
+end
+
+func tokenize_name
+    @current_word
+        dup "print" streq if
+            TOKEN_OP
+            OP_PRINT
+            push_token
+        else
+            "Undefined name " puts 34 putc puts 34 putc 10 putc
+            1 exit
+        end
+    drop
+end
+
+func push_token
+    var push_token_value 8 $push_token_value
+    var push_token_type 1 $push_token_type
+
+    @token_list ?token_count Token_size * +
+        dup ?push_token_type swap Token_type + $1
+        dup ?push_token_value swap Token_value + $8
+    drop
+
+    ?token_count 1 + $token_count
+end
+
+func read_word
+    skip_space
+    read_until_space
+end
+
+func read_until_space
+    char_left not if
+        0 ret
+    end
+
+    var read_until_space_i 8 0 $read_until_space_i
+    while
+        char_left
+        current_char is_space not
+        and
+    do
+        current_char @current_word ?read_until_space_i + $1
+        ?read_until_space_i 1 + $read_until_space_i
+        advance_char
+    end
+
+    1
+end
+
+func char_left
+    ?input_ptr ?input_size <
+end
+
+func is_space
+    dup 10 = if drop 1 ret end
+    dup 13 = if drop 1 ret end
+    dup 32 = if drop 1 ret end
+    drop 0
+end
+
+func is_digit
+    dup 47 > if
+        dup 58 < if
+            drop 1 ret
+        end
+    end
+    drop 0
+end
+
+func skip_space
+    while
+        char_left
+        current_char is_space
+        and
+    do
+        advance_char
+    end
+end
+
+func current_char
+    @input_buff ?input_ptr + ?1
+end
+
+func advance_char
+    ?input_ptr 1 + $input_ptr
+end
+
+func c4 "Compiling" end
+var text_buffer 1024
+var text_size 8
+
+func text_puts
+    @text_buffer ?text_size + swap strcpy 1 -
+    ?text_size + $text_size
+end
+
+func text_putu
+    itoa text_puts
+end
+
+func text_putc
+    var text_putc_buffer 2
+    @text_putc_buffer $1
+    @text_putc_buffer text_puts
+end
+
+func compile_tokens
+    var compile_tokens_i 8 0 $compile_tokens_i
+
+    TOKEN_COUNT 2 = "Exhaustive handling of token types" assert_eq
+    
+    while ?compile_tokens_i ?token_count < do
+        var compile_tokens_token 8 @token_list ?compile_tokens_i Token_size * + $compile_tokens_token
+
+        ?compile_tokens_token
+            dup Token_type + ?1
+                dup TOKEN_NUMBER = if
+                    ?compile_tokens_token compile_number
+                else dup TOKEN_OP = if
+                    ?compile_tokens_token compile_op
+                else
+                    "Unimplemented token type" error
+                end end
+            drop
+        drop
+
+        ?compile_tokens_i 1 + $compile_tokens_i
+    end
+
+    "./out/out.asm" @text_buffer write_file
+end
+
+func compile_number
+    "push " text_puts
+    dup Token_value + ?8 text_putu
+    10 text_putc
+    drop
+end
+
+func compile_op
+    OP_COUNT 1 = "Exhaustive handling of operators" assert_eq
+
+    dup Token_value + ?8
+        dup OP_PRINT = if
+            "call print" text_puts 10 text_putc
+        else
+            "Unimplemented operator" error
+        end
+    drop drop
+end
+
+func main
+    "./tests/print.ul" @input_buff 1024 read_file $input_size
+    tokenize
+    print_tokens
+    compile_tokens
+    @text_buffer puts
+end

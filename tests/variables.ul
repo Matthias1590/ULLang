@@ -1,0 +1,16 @@
+func main
+    var qword 8
+    var dword 4
+    var word 2
+    var byte 1
+
+    1234 $qword
+    1234 $dword
+    1234 $word
+    1234 $byte
+
+    @qword print ?qword print
+    @dword print ?dword print
+    @word print ?word print
+    @byte print ?byte print
+end

@@ -1,0 +1,27 @@
+func PATH "makefile" end
+
+var file_buff 1024
+
+func open
+    var o_arg0 8 $o_arg0
+    var o_arg1 8 $o_arg1
+    var o_arg2 8 $o_arg2
+    2 ?o_arg2 ?o_arg1 ?o_arg0 sys3
+end
+
+func read
+    var r_arg0 8 $r_arg0
+    var r_arg1 8 $r_arg1
+    var r_arg2 8 $r_arg2
+    0 ?r_arg2 ?r_arg1 ?r_arg0 sys3
+end
+
+func main
+    PATH 0 448 open
+    @file_buff 1024 read drop
+
+    34 putc
+    @file_buff puts
+    34 putc
+    10 putc
+end

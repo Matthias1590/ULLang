@@ -1,0 +1,13 @@
+func main
+    5 3 +
+        dup 10 > if
+            10 print
+        else dup 9 > if
+            9 print
+        else dup 8 > if
+            8 print
+        else dup 7 > if
+            7 print
+        end end end end
+    drop
+end

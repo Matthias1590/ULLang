@@ -1,0 +1,46 @@
+func and
+    if
+        if
+            1
+        else
+            0
+        end
+    else
+        drop
+        0
+    end
+end
+
+func or
+    if
+        drop
+        1
+    else
+        if
+            1
+        else
+            0
+        end
+    end
+end
+
+func not
+    if
+        0
+    else
+        1
+    end
+end
+
+func less
+    var b 8 $b
+    var a 8 $a
+
+    ?a ?b >
+    ?a ?b =
+    or not
+end
+
+func main
+    3 4 less print
+end

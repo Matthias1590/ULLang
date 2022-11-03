@@ -1,0 +1,14 @@
+func mult
+    var a 8 $a
+    var b 8 $b
+
+    ?b 0 = if
+        0 ret
+    end
+
+    ?a ?a ?b 1 - mult +
+end
+
+func main
+    3 11 mult print
+end
